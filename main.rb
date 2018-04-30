@@ -1,7 +1,7 @@
 require_relative 'deck.rb'
 require_relative 'player.rb'
-require_relative 'points_counter.rb'
-require_relative 'get_player_answer.rb'
+require_relative 'deal.rb'
 require_relative 'black_jack.rb'
+require_relative 'game_interface.rb'
 
-black_jack = BlackJack.new
+GameInterface.new
