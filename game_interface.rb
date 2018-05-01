@@ -16,34 +16,28 @@ class GameInterface
   end
 
   def deal 
-    @deal = @game.new_deal    
+    @deal = @game.new_deal   
+    @payer_stands = 0 
     puts ""
     puts "New deal"      
-    print "Bet: $#{@deal.bet}. Bank: $#{@deal.bank}. "
+    puts "Bet: $#{@deal.bet}. Bank: $#{@deal.bank}. "
     print_accounts      
-
-    while !@deal.cards_oveflow? do 
+    while !@deal.cards_oveflow? && @payer_stands < 2 do 
       player_move ? break : dealer_move 
     end
     open_cards
 
     if play_again? 
-      @game.game_over? ?  start_new_game : continue_game 
+      @game.game_over? ?  start_new_game : deal 
     else
       puts ""
       puts "Goodbye" 
     end
-  end
-
-  def continue_game
-    @deal = @game.new_deal
-    deal
-  end
+  end  
 
   def play_again?
     puts ""
-    print "Play again? (y/n):"
-    get_player_answer('y', 'n') == 'y' ? true : false
+    get_player_answer("Play again?", {'y' => 'y/', 'n' => 'n'}) == 'y' ? true : false
   end
 
   def player_move
@@ -52,12 +46,18 @@ class GameInterface
     puts ""
     puts "#{player.name} move:"
     print_cards(dealer, false)
-    print_cards(player)
-    print "What to do? (1 - hit, 2 - stand, 3 - open) : "    
-    case get_player_answer('1', '2', '3')
+    print_cards(player)  
+    answers = {}
+    answers["1"] = "1 - hit, " if player.cards.size < 3
+    answers["2"] = '2 - stand, ' if @payer_stands < 2 
+    answers["3"] = '3 - open'
+    case get_player_answer("What to do?", answers)
       when '1' 
         @deal.take_card(player)
         print_cards(player)
+        @payer_stands = 0
+      when '2'
+        @payer_stands += 1
       when '3'
         return true
       end
@@ -75,7 +75,8 @@ class GameInterface
   def open_cards
     puts ""
     puts "Open cards:"
-    @game.players.each { |key, player| print_cards(player) }
+    print_cards(@game.players[:dealer]) 
+    print_cards(@game.players[:player]) 
     puts ""
     puts "Winner: #{@deal.winner}" 
     print_accounts     
@@ -92,14 +93,16 @@ class GameInterface
     puts open ? " points: #{@deal.get_points(player.cards)}" : ""
   end
 
-  def get_player_answer(*param)
-    input = ""    
+  def get_player_answer(question, *param)  
+    print question + " ("
+    param[0].each { |answer, hint| print hint }
+    print ") : "
+    input = ""  
     loop do 
       input = gets.chomp.to_s
-      break if param.include? input
-      puts "Incorrect answer."
-      print "Try again: "
-    end    
+      break if param[0].include? input
+      print "Incorrect answer. Try again: "
+    end      
     input
   end
 

@@ -9,13 +9,12 @@ class BlackJack
   end
 
   def start_new_game
-    @players[:player].account = 100
-    @players[:dealer].account = 100 
+    @players.each { |key, player| player.account = 100 }
   end
 
   def game_over?    
-    game_over = true
-    @players.each { |key, player| game_over |= player.account <= 0 }
+    game_over = false
+    @players.each { |key, player| game_over |= player.account <= 0 }    
     game_over
   end
 

@@ -33,7 +33,7 @@ class Deal
       winner.account += @bank 
       winner = winner.name
     else 
-      @players.each { |key, player| player.account += @bank / 2 }
+      @players.each { |key, player| player.account += @bet }
       winner = "draw! "   
     end 
     winner  
@@ -51,13 +51,6 @@ class Deal
   def take_card(player, ai = false)    
     ai == :ai ? additional_condition = get_points(player.cards) < 17 : additional_condition = true
     player.cards << @deck.get_card if player.cards.size < 3 && additional_condition
-  end
-
-  def reset
-    @bank = 0
-    @player.cards = []
-    @dealer.cards = [] 
-    @deck = Deck.new
   end
 
   def get_points(cards)
