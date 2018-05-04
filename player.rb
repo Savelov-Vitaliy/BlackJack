@@ -1,5 +1,4 @@
 class Player
-
   attr_reader :name
   attr_accessor :account, :cards, :stands
 
@@ -9,5 +8,4 @@ class Player
     @cards = []
     @stands = 0
   end
-
 end

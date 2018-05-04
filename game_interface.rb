@@ -1,20 +1,19 @@
 class GameInterface
-
-  PLAYER_OPTIONS = { '1' => '1 - hit, ', '2' => '2 - stand, ', '3' => '3 - open' }
-  EXIT_OPTIONS = {'y' => 'y/', 'n' => 'n'}
+  PLAYER_OPTIONS = { '1' => '1 - hit, ', '2' => '2 - stand, ', '3' => '3 - open' }.freeze
+  EXIT_OPTIONS = { 'y' => 'y/', 'n' => 'n' }.freeze
 
   def initialize
-    puts "Welcome to BlackJack game. Let`s start!"
-    print "Input your name: " 
+    puts 'Welcome to BlackJack game. Let`s start!'
+    print 'Input your name: '
     @game = BlackJack.new(gets.chomp.capitalize)
     new_game
-  end    
+  end
 
   def new_game
     @game.new_game
     print_new_game
     new_deal
-  end  
+  end
 
   def new_deal
     @game.new_deal
@@ -22,7 +21,7 @@ class GameInterface
     move
   end
 
-  def move  
+  def move
     loop do
       print_player_move
       break if @game.deal.move(player_answer)
@@ -33,35 +32,35 @@ class GameInterface
 
   def open_cards
     print_open_cards
-    unless play_again? 
-      puts "\nGoodbye"
+    if play_again?
+      @game.game_over? ? new_game : new_deal
     else
-      @game.game_over? ? new_game : new_deal 
+      puts "\nGoodbye"
     end
   end
-    
-  def player_answer      
-    print "What to do? ("
+
+  def player_answer
+    print 'What to do? ('
     options = PLAYER_OPTIONS.dup
-    options.delete('1') unless @game.deal.can_player_hit? 
-    options.each { |answer, hint| print hint }
-    print ") : "
+    options.delete('1') unless @game.deal.can_player_hit?
+    options.each { |_answer, hint| print hint }
+    print ') : '
     answer_filtr(options.keys)
   end
 
   def print_player_move
     puts "\n#{@game.players[:player].name} move:"
     print_cards(false)
-  end 
+  end
 
   def print_dealer_move
     puts "\n#{@game.players[:dealer].name} move:"
-    print_card(@game.players[:dealer],false)
-  end  
+    print_card(@game.players[:dealer], false)
+  end
 
   def print_new_game
-    puts "\nNew game" 
-    print_accounts    
+    puts "\nNew game"
+    print_accounts
   end
 
   def print_new_deal
@@ -71,44 +70,43 @@ class GameInterface
 
   def play_again?
     print "\nPlay again? ("
-    EXIT_OPTIONS.each { |answer, hint| print hint }
-    print ") : "
+    EXIT_OPTIONS.each { |_answer, hint| print hint }
+    print ') : '
     answer_filtr(EXIT_OPTIONS.keys) == 'y'
-  end  
+  end
 
-  def print_open_cards   
+  def print_open_cards
     puts "\nOpen cards:"
-    print_cards  
+    print_cards
     winner = @game.deal.winner
-    winner = 'draw' if winner.to_s.empty? 
-    puts "\nWinner: #{winner}" 
-    print_accounts     
+    winner = 'draw' if winner.to_s.empty?
+    puts "\nWinner: #{winner}"
+    print_accounts
   end
 
   def print_accounts
-    @game.players.each { |key, player| print "#{player.name}: $#{player.account}. " }
-    puts ""
+    @game.players.each { |_key, player| print "#{player.name}: $#{player.account}. " }
+    puts ''
   end
 
   def print_cards(open = true)
-    print_card(@game.players[:dealer], open) 
-    print_card(@game.players[:player]) 
+    print_card(@game.players[:dealer], open)
+    print_card(@game.players[:player])
   end
 
   def print_card(player, open = true)
-    print "#{player.name} cards: "    
+    print "#{player.name} cards: "
     print open ? "#{player.cards.join ' '}, " : "#{player.cards.size} cards. "
-    puts open ? " points: #{@game.deal.get_points(player.cards)}" : ""
+    puts open ? " points: #{@game.deal.get_points(player.cards)}" : ''
   end
 
   def answer_filtr(*param)
-    input = ""  
-    loop do 
+    input = ''
+    loop do
       input = gets.chomp.to_s
       break if param[0].include? input
-      print "Incorrect answer. Try again: "
-    end      
+      print 'Incorrect answer. Try again: '
+    end
     input
   end
-
 end
