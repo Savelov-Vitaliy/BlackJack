@@ -1,84 +1,87 @@
 class GameInterface
 
+  PLAYER_OPTIONS = { '1' => '1 - hit, ', '2' => '2 - stand, ', '3' => '3 - open' }
+  EXIT_OPTIONS = {'y' => 'y/', 'n' => 'n'}
+
   def initialize
     puts "Welcome to BlackJack game. Let`s start!"
-    print "Input your name: "    
+    print "Input your name: " 
     @game = BlackJack.new(gets.chomp.capitalize)
-    start_new_game
-  end
+    new_game
+  end    
 
-  def start_new_game    
-    @game.start_new_game 
-    puts ""
-    puts "New game"       
-    print_accounts
-    deal
-  end
-
-  def deal 
-    @deal = @game.new_deal   
-    @payer_stands = 0 
-    puts ""
-    puts "New deal"      
-    puts "Bet: $#{@deal.bet}. Bank: $#{@deal.bank}. "
-    print_accounts      
-    while !@deal.cards_oveflow? && @payer_stands < 2 do 
-      player_move ? break : dealer_move 
-    end
-    open_cards
-
-    if play_again? 
-      @game.game_over? ?  start_new_game : deal 
-    else
-      puts ""
-      puts "Goodbye" 
-    end
+  def new_game
+    @game.new_game
+    print_new_game
+    new_deal
   end  
 
-  def play_again?
-    puts ""
-    get_player_answer("Play again?", {'y' => 'y/', 'n' => 'n'}) == 'y' ? true : false
+  def new_deal
+    @game.new_deal
+    print_new_deal
+    move
   end
 
-  def player_move
-    player = @game.players[:player]
-    dealer = @game.players[:dealer]
-    puts ""
-    puts "#{player.name} move:"
-    print_cards(dealer, false)
-    print_cards(player)  
-    answers = {}
-    answers["1"] = "1 - hit, " if player.cards.size < 3
-    answers["2"] = '2 - stand, ' if @payer_stands < 2 
-    answers["3"] = '3 - open'
-    case get_player_answer("What to do?", answers)
-      when '1' 
-        @deal.take_card(player)
-        print_cards(player)
-        @payer_stands = 0
-      when '2'
-        @payer_stands += 1
-      when '3'
-        return true
-      end
-      false
-  end
-
-  def dealer_move   
-    dealer = @game.players[:dealer]
-    puts ""
-    puts "#{dealer.name} move:"
-    @deal.take_card(dealer, :ai)
-    print_cards(dealer, false)
+  def move  
+    loop do
+      print_player_move
+      break if @game.deal.move(player_answer)
+      print_dealer_move
+    end
+    open_cards
   end
 
   def open_cards
-    puts ""
-    puts "Open cards:"
-    print_cards(@game.players[:dealer]) 
-    print_cards(@game.players[:player]) 
-    puts ""
-    puts "Winner: #{@deal.winner}" 
+    print_open_cards
+    unless play_again? 
+      puts "\nGoodbye"
+    else
+      @game.game_over? ? new_game : new_deal 
+    end
+  end
+    
+  def player_answer      
+    print "What to do? ("
+    options = PLAYER_OPTIONS.dup
+    options.delete('1') unless @game.deal.can_player_hit? 
+    options.each { |answer, hint| print hint }
+    print ") : "
+    answer_filtr(options.keys)
+  end
+
+  def print_player_move
+    puts "\n#{@game.players[:player].name} move:"
+    print_cards(false)
+  end 
+
+  def print_dealer_move
+    puts "\n#{@game.players[:dealer].name} move:"
+    print_card(@game.players[:dealer],false)
+  end  
+
+  def print_new_game
+    puts "\nNew game" 
+    print_accounts    
+  end
+
+  def print_new_deal
+    puts "\nNew deal\nBet: $#{@game.deal.bet}. Bank: $#{@game.deal.bank}"
+    print_accounts
+  end
+
+  def play_again?
+    print "\nPlay again? ("
+    EXIT_OPTIONS.each { |answer, hint| print hint }
+    print ") : "
+    answer_filtr(EXIT_OPTIONS.keys) == 'y'
+  end  
+
+  def print_open_cards   
+    puts "\nOpen cards:"
+    print_cards  
+    winner = @game.deal.winner
+    winner = 'draw' if winner.to_s.empty? 
+    puts "\nWinner: #{winner}" 
     print_accounts     
   end
 
@@ -87,16 +90,18 @@ class GameInterface
     puts ""
   end
 
-  def print_cards(player, open = true)
-    print "#{player.name} cards: "    
-    print open ? "#{player.cards.join ' '}, " : "#{player.cards.size} cards. "
-    puts open ? " points: #{@deal.get_points(player.cards)}" : ""
+  def print_cards(open = true)
+    print_card(@game.players[:dealer], open) 
+    print_card(@game.players[:player]) 
   end
 
-  def get_player_answer(question, *param)  
-    print question + " ("
-    param[0].each { |answer, hint| print hint }
-    print ") : "
+  def print_card(player, open = true)
+    print "#{player.name} cards: "    
+    print open ? "#{player.cards.join ' '}, " : "#{player.cards.size} cards. "
+    puts open ? " points: #{@game.deal.get_points(player.cards)}" : ""
+  end
+
+  def answer_filtr(*param)
     input = ""  
     loop do 
       input = gets.chomp.to_s
