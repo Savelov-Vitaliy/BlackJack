@@ -1,5 +1,5 @@
 class Deal
-  attr_reader :bet, :bank
+  attr_reader :bet, :bank, :winner
 
   def initialize(game)
     @game = game
@@ -7,7 +7,7 @@ class Deal
     @game.players.each do |_key, player|
       player.stands = 0
       player.cards = []
-      2.times { player.cards << @deck.get_card }
+      2.times { take_card(player) }
     end
     @bank = 0
     @bet = 10
@@ -19,11 +19,13 @@ class Deal
   end
 
   def move(player_answer)
-    return true if player_move(player_answer)
+    return end_deal if player_move(player_answer)
     dealer_move
-    return true if cards_oveflow? || stends_oveflow?
+    return end_deal if cards_oveflow? || stends_oveflow?
     false
   end
+
+  private
 
   def player_move(player_answer)
     player = @game.players[:player]
@@ -40,7 +42,7 @@ class Deal
 
   def dealer_move
     dealer = @game.players[:dealer]
-    take_card(dealer) if get_points(dealer.cards) < 17
+    take_card(dealer) if count_points(dealer.cards) < 17
     dealer.cards.size == 2 ? dealer.stands += 1 : dealer.stands = 0
   end
 
@@ -59,33 +61,37 @@ class Deal
     @game.players[:player].cards.size >= 3 && @game.players[:dealer].cards.size >= 3
   end
 
-  def winner
-    winner = get_winner
-    if winner.to_s.empty?
+  def end_deal
+    @winner = aword_victory
+    if @winner.to_s.empty?
       @game.players.each { |_key, player| player.account += @bet }
+      @winner = nil
     else
-      winner.account += @bank
-      winner = winner.name
+      @winner.account += @bank
     end
-    winner
+    true
   end
 
-  def get_winner
+  def aword_victory
     player = @game.players[:player]
     dealer = @game.players[:dealer]
-    player_points = get_points(@game.players[:player].cards)
-    dealer_points = get_points(@game.players[:dealer].cards)
+    player_points = count_points(@game.players[:player].cards)
+    dealer_points = count_points(@game.players[:dealer].cards)
     return nil if (player_points > 21 && dealer_points > 21) || player_points == dealer_points
     return player if dealer_points > 21
     return dealer if player_points > 21
-    player_points > dealer_points ? player : dealer
+    player_points > dealer_points || player_points > 21 ? player : dealer
   end
 
   def take_card(player)
-    player.cards << @deck.get_card if player.cards.size < 3
+    if player.cards.size < 3
+      player.cards << @deck.sample_card
+      player.points = count_points(player.cards)
+    end
+    true
   end
 
-  def get_points(cards)
+  def count_points(cards)
     points = 0
     aces = cards.find_all { |card| card[0] == 'A' }
     cards -= aces

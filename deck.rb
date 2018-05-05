@@ -9,7 +9,7 @@ class Deck
     @deck.shuffle!
   end
 
-  def get_card
+  def sample_card
     @deck.delete(@deck.sample(1).join)
   end
 end

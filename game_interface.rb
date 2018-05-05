@@ -9,6 +9,8 @@ class GameInterface
     new_game
   end
 
+  private
+
   def new_game
     @game.new_game
     print_new_game
@@ -27,10 +29,10 @@ class GameInterface
       break if @game.deal.move(player_answer)
       print_dealer_move
     end
-    open_cards
+    end_deal
   end
 
-  def open_cards
+  def end_deal
     print_open_cards
     if play_again?
       @game.game_over? ? new_game : new_deal
@@ -78,8 +80,7 @@ class GameInterface
   def print_open_cards
     puts "\nOpen cards:"
     print_cards
-    winner = @game.deal.winner
-    winner = 'draw' if winner.to_s.empty?
+    winner = @game.deal.winner.to_s.empty? ? 'draw' : @game.deal.winner.name
     puts "\nWinner: #{winner}"
     print_accounts
   end
@@ -97,7 +98,7 @@ class GameInterface
   def print_card(player, open = true)
     print "#{player.name} cards: "
     print open ? "#{player.cards.join ' '}, " : "#{player.cards.size} cards. "
-    puts open ? " points: #{@game.deal.get_points(player.cards)}" : ''
+    puts open ? " points: #{player.points}" : ''
   end
 
   def answer_filtr(*param)
