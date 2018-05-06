@@ -12,15 +12,22 @@ class GameInterface
   private
 
   def new_game
-    @game.new_game
-    print_new_game
-    new_deal
+    loop do
+      if @game.game_over?
+        @game.new_game
+        print_new_game
+      end
+      new_deal
+      break unless play_again?
+    end
+    puts "\nGoodbye"
   end
 
   def new_deal
     @game.new_deal
     print_new_deal
     move
+    print_open_cards
   end
 
   def move
@@ -28,16 +35,6 @@ class GameInterface
       print_player_move
       break if @game.deal.move(player_answer)
       print_dealer_move
-    end
-    end_deal
-  end
-
-  def end_deal
-    print_open_cards
-    if play_again?
-      @game.game_over? ? new_game : new_deal
-    else
-      puts "\nGoodbye"
     end
   end
 
